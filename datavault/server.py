@@ -101,7 +101,7 @@ class DataVault(LabradServer):
             return c['path']
 
         temp = c['path'][:] # copy the current path
-        if isinstance(path, (int, long)):
+        if isinstance(path, int):
             if path > 0:
                 temp = temp[:-path]
                 if not len(temp):
@@ -521,7 +521,7 @@ class DataVaultMultiHead(DataVault):
 
     @inlineCallbacks
     def keepalive(self):
-        print "sending keepalive to {}:{}".format(self.host, self.port)
+        print("sending keepalive to {}:{}".format(self.host, self.port))
         try:
             yield self.client.manager.echo('ping')
         except:
@@ -540,7 +540,7 @@ class DataVaultMultiHead(DataVault):
             host = s.host
             port = s.port
             running = s.connected
-            print "host: %s port: %s running: %s" % (host, port, running)
+            print("host: %s port: %s running: %s" % (host, port, running))
             rv.append((host, port, running))
         return rv
 

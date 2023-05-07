@@ -12,9 +12,9 @@ from twisted.internet import reactor
 try:
     import numpy as np
     use_numpy = True
-except ImportError, e:
-    print e
-    print "Numpy not imported.  The DataVault will operate, but will be slower."
+except ImportError as e:
+    print(e)
+    print("Numpy not imported.  The DataVault will operate, but will be slower.")
     use_numpy = False
 
 from labrad import types as T
@@ -29,7 +29,7 @@ Dependent = collections.namedtuple('Dependent', ['label', 'legend', 'shape', 'da
 TIME_FORMAT = '%Y-%m-%d, %H:%M:%S'
 PRECISION = 12 # digits of precision to use when saving data
 DATA_FORMAT = '%%.%dG' % PRECISION
-FILE_TIMEOUT_SEC = 60 # how long to keep datafiles open if not accessed
+FILE_TIMEOUT_SEC = 15 # how long to keep datafiles open if not accessed
 DATA_TIMEOUT = 300 # how long to keep data in memory if not accessed
 DATA_URL_PREFIX = 'data:application/labrad;base64,'
 
@@ -48,15 +48,20 @@ def labrad_urlencode(data):
     else:
         data_bytes, t = T.flatten(data)
         all_bytes, _ = T.flatten((str(t), data_bytes), 'ss')
-    data_url = DATA_URL_PREFIX + base64.urlsafe_b64encode(all_bytes)
+    data_url = DATA_URL_PREFIX + base64.urlsafe_b64encode(all_bytes).decode()
     return data_url
 
 def labrad_urldecode(data_url):
+    if isinstance(data_url, bytes):
+        data_url = data_url.decode()
     if data_url.startswith(DATA_URL_PREFIX):
         # decode parameter data from dataurl
         all_bytes = base64.urlsafe_b64decode(data_url[len(DATA_URL_PREFIX):])
         t, data_bytes = T.unflatten(all_bytes, 'ss')
-        data = T.unflatten(data_bytes, t)
+        if isinstance(data_bytes,str):
+            data = T.unflatten(data_bytes.encode(), t)
+        else:
+            data = T.unflatten(data_bytes, t)
         return data
     else:
         raise ValueError("Trying to labrad_urldecode data that doesn't start "
@@ -527,7 +532,7 @@ class HDF5MetaData(object):
     def getIndependents(self):
         attrs = self.dataset.attrs
         rv = []
-        for idx in xrange(sys.maxint):
+        for idx in range(sys.maxsize):
             prefix = 'Independent{}.'.format(idx)
             key = prefix + 'label'
             if key in attrs:
@@ -542,7 +547,7 @@ class HDF5MetaData(object):
     def getDependents(self):
         attrs = self.dataset.attrs
         rv = []
-        for idx in xrange(sys.maxint):
+        for idx in range(sys.maxsize):
             prefix = 'Dependent{}.'.format(idx)
             key = prefix + 'label'
             if key in attrs:
@@ -704,6 +709,7 @@ class ExtendedHDF5Data(HDF5MetaData):
         old_rows = self.dataset.shape[0]
         self.dataset.resize((old_rows + new_rows,))
         self.dataset[old_rows:(old_rows + new_rows)] = data
+        self.dataset.attrs['Modification Time'] = time.time()
 
     def getData(self, limit, start, transpose, simpleOnly):
         """Get up to limit rows from a dataset."""
@@ -797,6 +803,7 @@ class SimpleHDF5Data(HDF5MetaData):
         #    field = "f%d" % (col,)
         #    new_data[field] = data[:,col]
         self.dataset[old_rows:(old_rows + new_rows)] = data
+        self.dataset.attrs['Modification Time'] = time.time()
 
     def getData(self, limit, start, transpose, simpleOnly):
         """Get up to limit rows from a dataset."""
