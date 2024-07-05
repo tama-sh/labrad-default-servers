@@ -471,3 +471,11 @@ class Dataset(object):
         else:
             self.comment_listeners.add(context)
 
+    def getAtime(self):
+        return self.data.getAtime()
+
+    def getCtime(self):
+        return self.data.getCtime()
+
+    def getMtime(self):
+        return self.data.getMtime()

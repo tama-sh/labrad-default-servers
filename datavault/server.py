@@ -436,6 +436,21 @@ class DataVault(LabradServer):
         if len(params):
             return params
 
+    @setting(130, 'get atime')
+    def get_atime(self, c):
+        dataset = self.getDataset(c)
+        return dataset.getAtime()
+
+    @setting(131, 'get ctime')
+    def get_ctime(self, c):
+        dataset = self.getDataset(c)
+        return dataset.getCtime()
+
+    @setting(132, 'get mtime')
+    def get_mtime(self, c):
+        dataset = self.getDataset(c)
+        return dataset.getMtime()
+
     @setting(200, 'add comment', comment=['s'], user=['s'], returns=[''])
     def add_comment(self, c, comment, user='anonymous'):
         """Add a comment to the current dataset."""

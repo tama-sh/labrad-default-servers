@@ -650,6 +650,15 @@ class HDF5MetaData(object):
     def numComments(self):
         return len(self.dataset.attrs['Comments'])
 
+    def getAtime(self):
+        return self.dataset.attrs['Access Time']
+
+    def getCtime(self):
+        return self.dataset.attrs['Creation Time']
+
+    def getMtime(self):
+        return self.dataset.attrs['Modification Time']
+
 class ExtendedHDF5Data(HDF5MetaData):
     """Dataset backed by HDF5 file
 
